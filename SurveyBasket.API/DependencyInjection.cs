@@ -1,5 +1,7 @@
 ﻿using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.EntityFrameworkCore;
+using SurveyBasket.API.Persistence;
 using SurveyBasket.API.Services;
 using System.Reflection;
 
@@ -7,9 +9,13 @@ namespace SurveyBasket.API
 {
 	public static class DependencyInjection
 	{
-		public static IServiceCollection AddDependencies(this IServiceCollection services)
+		public static IServiceCollection AddDependencies(this IServiceCollection services,IConfiguration configuration)
 		{
 			services.AddControllers();
+
+			var connectionStrings = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection String DefaultConnection not found.");
+			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionStrings));
+
 			services
 				.AddSwaggerServices()
 				.AddFluentValidationConfig();
@@ -35,5 +41,6 @@ namespace SurveyBasket.API
 
 			return services;
 		}
+
 	}
 }
