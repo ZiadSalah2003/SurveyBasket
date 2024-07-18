@@ -1,8 +1,7 @@
 ﻿using FluentValidation;
 using Mapster;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using SurveyBasket.API.Contracts.cs.Requests;
-using SurveyBasket.API.Contracts.cs.Responses;
+using SurveyBasket.API.Contracts.cs.Polls;
 using SurveyBasket.API.Services;
 
 namespace SurveyBasket.API.Controllers
