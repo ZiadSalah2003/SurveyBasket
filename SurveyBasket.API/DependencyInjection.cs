@@ -17,7 +17,7 @@ namespace SurveyBasket.API
 		public static IServiceCollection AddDependencies(this IServiceCollection services,IConfiguration configuration)
 		{
 			services.AddControllers();
-			services.AddAuthConfig();
+			services.AddAuthConfig(configuration);
 
 			var connectionStrings = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection String DefaultConnection not found.");
 			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionStrings));
@@ -49,12 +49,16 @@ namespace SurveyBasket.API
 			return services;
 		}
 
-		private static IServiceCollection AddAuthConfig(this IServiceCollection services)
+		private static IServiceCollection AddAuthConfig(this IServiceCollection services, IConfiguration configuration)
 		{
-			services.AddSingleton<IJwtProvider, JwtProvider>();
-
 			services.AddIdentity<ApplicationUser, IdentityRole>()
 				.AddEntityFrameworkStores<ApplicationDbContext>();
+
+			services.AddSingleton<IJwtProvider, JwtProvider>();
+			//services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+			services.AddOptions<JwtOptions>().BindConfiguration(JwtOptions.SectionName).ValidateDataAnnotations().ValidateOnStart();
+
+			var jwtSettings = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
 
 			services.AddAuthentication(options =>
 			{
