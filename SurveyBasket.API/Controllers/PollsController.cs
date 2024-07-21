@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using SurveyBasket.API.Contracts.cs.Polls;
 using SurveyBasket.API.Services;
@@ -8,6 +9,7 @@ namespace SurveyBasket.API.Controllers
 {
     [Route("api/[controller]")]
 	[ApiController]
+	[Authorize]
 	public class PollsController : ControllerBase
 	{
 		private readonly IPollService _pollService;
@@ -38,7 +40,7 @@ namespace SurveyBasket.API.Controllers
 		{
 			
 			var newPoll = await _pollService.AddAsync(request.Adapt<Poll>(), cancellationToken);
-			return CreatedAtAction(nameof(Get), new { id = newPoll.Id }, newPoll);
+			return CreatedAtAction(nameof(Get), new { id = newPoll.Id }, newPoll.Adapt<PollResponse>());
 		}
 		[HttpPut("{id}")]
 		public async Task<IActionResult> Update([FromRoute] int id, [FromBody] PollRequest request, CancellationToken cancellationToken)
