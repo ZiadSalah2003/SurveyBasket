@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using SurveyBasket.API.Abstractions;
 using SurveyBasket.API.Authentication;
 using SurveyBasket.API.Contracts.cs.Authentication;
 using SurveyBasket.API.Services;
@@ -22,22 +24,27 @@ namespace SurveyBasket.API.Controllers
 		public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request, CancellationToken cancellationToken)
 		{
 			var authResult = await _authService.GetTokenAsync(request.Email, request.Password, cancellationToken);
-			return authResult is null ? BadRequest("Invalid Email Or Password") : Ok(authResult);
+			return authResult.IsSuccess
+				? Ok(authResult.Value)
+				: Problem(statusCode: StatusCodes.Status400BadRequest, title: authResult.Error.Code, detail: authResult.Error.Description);
 
 		}
 		[HttpPost("refresh")]
 		public async Task<IActionResult> RefreshAsync([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken)
 		{
-			var authResult = await _authService.GetTokenAsync(request.Token, request.RefreshToken, cancellationToken);
-			return authResult is null ? BadRequest("Invalid Token") : Ok(authResult);
-
+			var result = await _authService.GetTokenAsync(request.Token, request.RefreshToken, cancellationToken);
+			return result.IsSuccess
+				? Ok()
+				: Problem(statusCode: StatusCodes.Status400BadRequest, title: result.Error.Code, detail: result.Error.Description);
 		}
 
 		[HttpPost("revoke-refresh-token")]
 		public async Task<IActionResult> RevokeRefreshAsync([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken)
 		{
-			var isRevoked = await _authService.RevokeRefreshTokenAsync(request.Token, request.RefreshToken, cancellationToken);
-			return isRevoked ? Ok() : BadRequest("Operation Failed");
+			var result = await _authService.RevokeRefreshTokenAsync(request.Token, request.RefreshToken, cancellationToken);
+			return result.IsSuccess
+				? Ok()
+				: Problem(statusCode: StatusCodes.Status400BadRequest, title: result.Error.Code, detail: result.Error.Description);
 
 		}
 	}
