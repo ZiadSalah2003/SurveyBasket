@@ -17,6 +17,27 @@ namespace SurveyBasket.API
 		public static IServiceCollection AddDependencies(this IServiceCollection services,IConfiguration configuration)
 		{
 			services.AddControllers();
+
+			//services.AddCors(options =>
+			//	options.AddPolicy("AllowAll", builder =>
+			//		builder
+			//			.AllowAnyOrigin()
+			//			.AllowAnyMethod()
+			//			.AllowAnyHeader()
+			//			//.WithOrigins("http://localhost:3000")
+			//	)
+			//);
+			services.AddCors(options =>
+				options.AddDefaultPolicy(builder =>
+				builder
+					.AllowAnyMethod()
+					.AllowAnyHeader()
+					.WithOrigins(configuration.GetSection("AllowedOrigins").Get<string[]>()!)
+				)
+
+			);
+
+
 			services.AddAuthConfig(configuration);
 
 			var connectionStrings = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection String DefaultConnection not found.");
