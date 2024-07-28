@@ -26,7 +26,9 @@ namespace SurveyBasket.API.Controllers
 			var authResult = await _authService.GetTokenAsync(request.Email, request.Password, cancellationToken);
 			return authResult.IsSuccess
 				? Ok(authResult.Value)
-				: Problem(statusCode: StatusCodes.Status400BadRequest, title: authResult.Error.Code, detail: authResult.Error.Description);
+				: authResult.ToProblem(StatusCodes.Status400BadRequest, "Bad Request");
+
+
 
 		}
 		[HttpPost("refresh")]
