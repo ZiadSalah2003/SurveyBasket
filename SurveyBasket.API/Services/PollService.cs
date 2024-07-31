@@ -1,4 +1,5 @@
-﻿using Mapster;
+﻿using Azure.Core;
+using Mapster;
 using SurveyBasket.API.Contracts.cs.Polls;
 
 namespace SurveyBasket.API.Services
@@ -21,28 +22,35 @@ namespace SurveyBasket.API.Services
 			return poll is null ? Result.Failure<PollResponse>(PollErrors.PollNotFound) : Result.Success(poll.Adapt<PollResponse>());
 		}
 
-		public async Task<PollResponse> AddAsync(PollRequest request, CancellationToken cancellationToken=default)
+		public async Task<Result<PollResponse>> AddAsync(PollRequest request, CancellationToken cancellationToken = default)
 		{
+			var isExistingTitle = await _context.Polls.AnyAsync(p => p.Title == request.Title, cancellationToken);
+			if (isExistingTitle)
+				return Result.Failure<PollResponse>(PollErrors.PollNotFound);
 			var poll = request.Adapt<Poll>();
 			await _context.Polls.AddAsync(poll, cancellationToken);
 			await _context.SaveChangesAsync(cancellationToken);
-			return poll.Adapt<PollResponse>();
+			return Result.Success(poll.Adapt<PollResponse>());
 		}
 
-		public async Task<Result> UpdateAsync(int id, PollRequest poll, CancellationToken cancellationToken = default)
+		public async Task<Result> UpdateAsync(int id, PollRequest request, CancellationToken cancellationToken = default)
 		{
+			var isExistingTitle = await _context.Polls.AnyAsync(p => p.Title == request.Title && p.Id != id, cancellationToken);
+			if (isExistingTitle)
+				return Result.Failure<PollResponse>(PollErrors.PollNotFound);
+
 			var updated = await _context.Polls.FindAsync(id, cancellationToken);
 			if (updated is null)
 				return Result.Failure(PollErrors.PollNotFound);
-			updated.Title = poll.Title;
-			updated.Summary = poll.Summary;
-			updated.StartsAt = poll.StartsAt;
-			updated.EndsAt = poll.EndsAt;
+			updated.Title = request.Title;
+			updated.Summary = request.Summary;
+			updated.StartsAt = request.StartsAt;
+			updated.EndsAt = request.EndsAt;
 			await _context.SaveChangesAsync(cancellationToken);
 			return Result.Success();
 		}
 
-		public async Task<Result> DeleteAsync(int id, CancellationToken cancellationToken=default)
+		public async Task<Result> DeleteAsync(int id, CancellationToken cancellationToken = default)
 		{
 			var poll = await _context.Polls.FindAsync(id, cancellationToken);
 			if (poll is null)
