@@ -4,9 +4,9 @@ namespace SurveyBasket.API.Errors
 {
 	public class GlobalExceptionHandler : IExceptionHandler
 	{
-		private readonly Logger<GlobalExceptionHandler> _logger;
+		private readonly ILogger<GlobalExceptionHandler> _logger;
 
-		public GlobalExceptionHandler(Logger<GlobalExceptionHandler> logger)
+		public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
 		{
 			_logger = logger;
 		}
