@@ -9,7 +9,9 @@ namespace SurveyBasket.API.Persistence
 	public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 	{
 		private readonly IHttpContextAccessor _httpContextAccessor;
+		public DbSet<Answer> Answers { get; set; }
 		public DbSet<Poll> Polls { get; set; }
+		public DbSet<Question> Questions { get; set; }
 		public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IHttpContextAccessor httpContextAccessor) : base(options)
 		{
 			_httpContextAccessor = httpContextAccessor;
@@ -17,6 +19,9 @@ namespace SurveyBasket.API.Persistence
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+
+
 			base.OnModelCreating(modelBuilder);
 		}
 		public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

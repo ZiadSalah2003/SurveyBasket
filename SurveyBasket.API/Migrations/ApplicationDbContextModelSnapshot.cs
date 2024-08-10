@@ -279,7 +279,7 @@ namespace SurveyBasket.API.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("Polls");
+                    b.ToTable("Polls", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -335,7 +335,7 @@ namespace SurveyBasket.API.Migrations
 
             modelBuilder.Entity("SurveyBasket.API.Entities.ApplicationUser", b =>
                 {
-                    b.OwnsMany("SurveyBasket.API.Entities.RefreshToken", "RefreshTokens", b1 =>
+                    b.OwnsMany("SurveyBasket.API.Entities.ApplicationUser.RefreshTokens#SurveyBasket.API.Entities.RefreshToken", "RefreshTokens", b1 =>
                         {
                             b1.Property<string>("UserId")
                                 .HasColumnType("nvarchar(450)");
