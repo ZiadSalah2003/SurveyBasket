@@ -24,9 +24,9 @@ namespace SurveyBasket.API.Services
 
 		public async Task<Result<PollResponse>> AddAsync(PollRequest request, CancellationToken cancellationToken = default)
 		{
-			var isExistingTitle = await _context.Polls.AnyAsync(p => p.Title == request.Title, cancellationToken);
+			var isExistingTitle = await _context.Polls.AnyAsync(p => p.Title == request.Title, cancellationToken: cancellationToken);
 			if (isExistingTitle)
-				return Result.Failure<PollResponse>(PollErrors.PollNotFound);
+				return Result.Failure<PollResponse>(PollErrors.DuplicatedPollTitle);
 			var poll = request.Adapt<Poll>();
 			await _context.Polls.AddAsync(poll, cancellationToken);
 			await _context.SaveChangesAsync(cancellationToken);
