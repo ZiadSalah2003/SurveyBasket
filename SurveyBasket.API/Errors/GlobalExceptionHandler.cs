@@ -17,8 +17,8 @@ namespace SurveyBasket.API.Errors
 			var problemDetails = new ProblemDetails
 			{
 				Status = StatusCodes.Status500InternalServerError,
-				Title = "An error occurred while processing your request",
-				Detail = "An error occurred while processing your request"
+				Title = "Internal Server Error",
+				Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1"
 			};
 			httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
 			await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken: cancellationToken);

@@ -2,21 +2,17 @@
 {
 	public static class ResultExtensions
 	{
-		public static ObjectResult ToProblem(this Result result,int statusCode,string title)
+		public static ObjectResult ToProblem(this Result result,int statusCode)
 		{
 			if(result.IsSuccess)
 				throw new InvalidOperationException("Cannot convert a successful result to a problem");
 
 			var problem = Results.Problem(statusCode: statusCode);
-			var problemDetails = new ProblemDetails
+			var problemDetails = problem.GetType().GetProperty(nameof(ProblemDetails))!.GetValue(problem) as ProblemDetails;
+			problemDetails!.Extensions = new Dictionary<string, object?>
 			{
-				Status = statusCode,
-				Title = title,
-				Extensions =new Dictionary<string, object?>
 				{
-					{
-						"errors",new[]{result.Error}
-					}
+					"errors",new[]{result.Error}
 				}
 			};
 			return new ObjectResult(problemDetails);
