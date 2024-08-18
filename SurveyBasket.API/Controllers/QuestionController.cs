@@ -30,9 +30,7 @@ namespace SurveyBasket.API.Controllers
 		public async Task<IActionResult> Get([FromRoute] int pollId, [FromRoute] int id, CancellationToken cancellationToken)
 		{
 			var result = await _questionService.GetAsync(pollId, id, cancellationToken);
-			return result.IsSuccess
-				? Ok(result.Value)
-				: result.ToProblem(StatusCodes.Status404NotFound);
+			return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
 		}
 
 		[HttpPost("")]
@@ -53,12 +51,7 @@ namespace SurveyBasket.API.Controllers
 		{
 			var result = await _questionService.UpdateAsync(pollId, id, request, cancellationToken);
 
-			if (result.IsSuccess)
-				return NoContent();
-
-			return result.Error.Equals(QuestionErrors.DuplicatedQuestionContent)
-			? result.ToProblem(statusCode: StatusCodes.Status409Conflict)
-			: result.ToProblem(statusCode: StatusCodes.Status404NotFound);
+			return result.IsSuccess ? NoContent() : result.ToProblem();
 		}
 
 		[HttpPut("{id}/ToggleStatus")]
