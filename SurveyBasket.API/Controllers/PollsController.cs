@@ -23,10 +23,15 @@ namespace SurveyBasket.API.Controllers
 		[HttpGet("")]
 		public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
 		{
-			var polls = await _pollService.GetAllAsync(cancellationToken);
-			var response = polls.Adapt<IEnumerable<PollResponse>>();
-			return Ok(polls);
+			return Ok(await _pollService.GetAllAsync(cancellationToken));
 		}
+
+		[HttpGet("current")]
+		public async Task<IActionResult> GetCurrent(CancellationToken cancellationToken)
+		{
+			return Ok(await _pollService.GetCurrentAsync(cancellationToken));
+		}
+
 		[HttpGet("{id}")]
 		public async Task<IActionResult> Get([FromRoute] int id, CancellationToken cancellationToken)
 		{
