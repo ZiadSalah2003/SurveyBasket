@@ -12,6 +12,8 @@ namespace SurveyBasket.API.Persistence
 		public DbSet<Answer> Answers { get; set; }
 		public DbSet<Poll> Polls { get; set; }
 		public DbSet<Question> Questions { get; set; }
+		public DbSet<Vote> Votes { get; set; }
+		public DbSet<VoteAnswer> VoteAnswers { get; set; }
 		public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IHttpContextAccessor httpContextAccessor) : base(options)
 		{
 			_httpContextAccessor = httpContextAccessor;
@@ -23,7 +25,7 @@ namespace SurveyBasket.API.Persistence
 			var cascadeFKs = modelBuilder.Model
 				.GetEntityTypes()
 				.SelectMany(t => t.GetForeignKeys())
-				.Where(fk =>fk.DeleteBehavior == DeleteBehavior.Cascade && !fk.IsOwnership );
+				.Where(fk => fk.DeleteBehavior == DeleteBehavior.Cascade && !fk.IsOwnership);
 
 			foreach (var fk in cascadeFKs)
 				fk.DeleteBehavior = DeleteBehavior.Restrict;
