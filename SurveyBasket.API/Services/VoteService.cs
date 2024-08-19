@@ -33,7 +33,6 @@ namespace SurveyBasket.API.Services
 			await _context.Votes.AddAsync(vote, cancellationToken);
 			await _context.SaveChangesAsync(cancellationToken);
 			return Result.Success();
-			}
 		}
 	}
 }
