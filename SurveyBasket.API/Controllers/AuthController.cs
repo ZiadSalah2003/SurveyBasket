@@ -15,19 +15,19 @@ namespace SurveyBasket.API.Controllers
 	{
 		private readonly IAuthService _authService;
 		private readonly JwtOptions _jwtOptions;
-		public AuthController(IAuthService authService, IOptions<JwtOptions> jwtOptions)
+		private readonly ILogger<AuthController> _logger;
+		public AuthController(IAuthService authService, IOptions<JwtOptions> jwtOptions, ILogger<AuthController> logger)
 		{
 			_authService = authService;
 			_jwtOptions = jwtOptions.Value;
+			_logger = logger;
 		}
 		[HttpPost("")]
 		public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request, CancellationToken cancellationToken)
 		{
+			_logger.LogInformation("Logging with email: {email} and password:{passwrod}", request.Email, request.Password);
 			var authResult = await _authService.GetTokenAsync(request.Email, request.Password, cancellationToken);
 			return authResult.IsSuccess ? Ok(authResult.Value) : authResult.ToProblem();
-
-
-
 		}
 		[HttpPost("refresh")]
 		public async Task<IActionResult> RefreshAsync([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken)

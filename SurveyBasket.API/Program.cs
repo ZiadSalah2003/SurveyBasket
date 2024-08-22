@@ -1,6 +1,7 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using SurveyBasket.API;
 using SurveyBasket.API.Persistence;
 using SurveyBasket.API.Services;
@@ -12,6 +13,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Host.UseSerilog((context, configuration) =>
+	configuration.ReadFrom.Configuration(context.Configuration)
+);
 
 builder.Services.AddDependencies(builder.Configuration);
 
@@ -24,6 +28,7 @@ if (app.Environment.IsDevelopment())
 	app.UseSwaggerUI();
 }
 
+app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 app.UseCors();
 app.UseAuthorization();
