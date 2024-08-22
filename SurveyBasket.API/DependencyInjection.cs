@@ -2,11 +2,13 @@
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SurveyBasket.API.Authentication;
 using SurveyBasket.API.Persistence;
 using SurveyBasket.API.Services;
+using SurveyBasket.API.Settings;
 using System.Reflection;
 using System.Text;
 
@@ -53,9 +55,13 @@ namespace SurveyBasket.API
 			services.AddScoped<IAuthService, AuthService>();
 			services.AddScoped<IVoteService, VoteService>();
 			services.AddScoped<IResultService, ResultService>();
+			services.AddScoped<IEmailSender, EmailService>();
 
 			services.AddExceptionHandler<GlobalExceptionHandler>();
 			services.AddProblemDetails();
+
+			services.Configure<MailSettings>(configuration.GetSection(nameof(MailSettings)));
+			services.AddHttpContextAccessor();
 
 			return services;
 		}
