@@ -1,5 +1,8 @@
 ﻿using Mapster;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.WebUtilities;
+using SurveyBasket.API.Helpers;
 using System.Text;
 
 namespace SurveyBasket.API.Services
@@ -10,12 +13,16 @@ namespace SurveyBasket.API.Services
 		private readonly IJwtProvider _jwtProvider;
 		private readonly int _refreshTokenExpiryDays = 14;
 		private readonly ILogger<AuthService> _logger;
+		private readonly IEmailSender _emailSender;
+		private readonly IHttpContextAccessor _httpContextAccessor;
 
-		public AuthService(UserManager<ApplicationUser> userManger, IJwtProvider jwtProvider, ILogger<AuthService> logger)
+		public AuthService(UserManager<ApplicationUser> userManger, IJwtProvider jwtProvider, ILogger<AuthService> logger, IEmailSender emailSender, IHttpContextAccessor httpContextAccessor)
 		{
 			_userManger = userManger;
 			_jwtProvider = jwtProvider;
 			_logger = logger;
+			_emailSender = emailSender;
+			_httpContextAccessor = httpContextAccessor;
 		}
 		public async Task<Result<AuthResponse>> GetTokenAsync(string email, string password, CancellationToken cancellationToken = default)
 		{
@@ -102,6 +109,9 @@ namespace SurveyBasket.API.Services
 				var code = await _userManger.GenerateEmailConfirmationTokenAsync(user);
 				code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 				_logger.LogInformation("Confirmation Code {code}", code);
+
+				await SendConfirmationEmailAsync(user, code);
+
 				return Result.Success();
 			}
 			var error = result.Errors.First();
@@ -148,11 +158,27 @@ namespace SurveyBasket.API.Services
 			code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 			_logger.LogInformation("Confirmation Code {code}", code);
 
+			await SendConfirmationEmailAsync(user, code);
+
 			return Result.Success();
 		}
 		private static string GenerateRefreshToken()
 		{
 			return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+		}
+		
+		private async Task SendConfirmationEmailAsync(ApplicationUser user, string code)
+		{
+			var origin = _httpContextAccessor.HttpContext?.Request.Headers.Origin;
+
+			var emailBody = EmailBodyBuilder.GenerateEmailBody("EmailConfirmation",
+				new Dictionary<string, string>
+				{
+					{"{{name}}",user.FirstName },
+					{ "{{action_url}}",$"{origin}/auth/emailConfirmation?userId={user.Id}&code={code}" }
+				}
+);
+			await _emailSender.SendEmailAsync(user.Email!, "✅ Survay Basket: Confirm your email", emailBody);
 		}
 
 	}
