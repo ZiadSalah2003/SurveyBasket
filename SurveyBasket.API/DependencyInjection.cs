@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using FluentValidation.AspNetCore;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -16,7 +17,7 @@ namespace SurveyBasket.API
 {
 	public static class DependencyInjection
 	{
-		public static IServiceCollection AddDependencies(this IServiceCollection services,IConfiguration configuration)
+		public static IServiceCollection AddDependencies(this IServiceCollection services, IConfiguration configuration)
 		{
 			services.AddControllers();
 
@@ -41,6 +42,7 @@ namespace SurveyBasket.API
 
 
 			services.AddAuthConfig(configuration);
+			services.AddBackgroundJobsConfig(configuration);
 
 			var connectionStrings = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection String DefaultConnection not found.");
 			services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionStrings));
@@ -53,6 +55,7 @@ namespace SurveyBasket.API
 			services.AddScoped<IPollService, PollService>();
 			services.AddScoped<IQuestionService, QuestionService>();
 			services.AddScoped<IAuthService, AuthService>();
+			services.AddScoped<INotificationService, NotificationService>();
 			services.AddScoped<IVoteService, VoteService>();
 			services.AddScoped<IResultService, ResultService>();
 			services.AddScoped<IEmailSender, EmailService>();
@@ -116,10 +119,23 @@ namespace SurveyBasket.API
 
 			services.Configure<IdentityOptions>(options =>
 			{
-				options.Password.RequiredLength= 8;
+				options.Password.RequiredLength = 8;
 				options.SignIn.RequireConfirmedEmail = true;
 				options.User.RequireUniqueEmail = true;
 			});
+
+			return services;
+		}
+
+		private static IServiceCollection AddBackgroundJobsConfig(this IServiceCollection services, IConfiguration configuration)
+		{
+			services.AddHangfire(config => config
+					.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+					.UseSimpleAssemblyNameTypeSerializer()
+					.UseRecommendedSerializerSettings()
+					.UseSqlServerStorage(configuration.GetConnectionString("HangfireConnection")));
+
+			services.AddHangfireServer();
 
 			return services;
 		}
