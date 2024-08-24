@@ -1,4 +1,5 @@
-﻿using Mapster;
+﻿using Hangfire;
+using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.WebUtilities;
@@ -166,7 +167,7 @@ namespace SurveyBasket.API.Services
 		{
 			return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
 		}
-		
+
 		private async Task SendConfirmationEmailAsync(ApplicationUser user, string code)
 		{
 			var origin = _httpContextAccessor.HttpContext?.Request.Headers.Origin;
@@ -177,9 +178,10 @@ namespace SurveyBasket.API.Services
 					{"{{name}}",user.FirstName },
 					{ "{{action_url}}",$"{origin}/auth/emailConfirmation?userId={user.Id}&code={code}" }
 				}
-);
-			await _emailSender.SendEmailAsync(user.Email!, "✅ Survay Basket: Confirm your email", emailBody);
+			);
+			BackgroundJob.Enqueue(() => _emailSender.SendEmailAsync(user.Email!, "✅ Survay Basket: Confirm your email", emailBody));
+			
+			await Task.CompletedTask;
 		}
-
 	}
 }

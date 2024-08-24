@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using Hangfire;
 using Mapster;
 using SurveyBasket.API.Contracts.cs.Polls;
 using SurveyBasket.API.Contracts.cs.Questions;
@@ -9,10 +10,12 @@ namespace SurveyBasket.API.Services
 	public class PollService : IPollService
 	{
 		private readonly ApplicationDbContext _context;
+		private readonly INotificationService _notificationService;
 
-		public PollService(ApplicationDbContext context)
+		public PollService(ApplicationDbContext context, INotificationService notificationService)
 		{
 			_context = context;
+			_notificationService = notificationService;
 		}
 		public async Task<IEnumerable<PollResponse>> GetAllAsync(CancellationToken cancellationToken = default)
 		{
@@ -77,6 +80,10 @@ namespace SurveyBasket.API.Services
 				return Result.Failure(PollErrors.PollNotFound);
 			poll.IsPublished = !poll.IsPublished;
 			await _context.SaveChangesAsync(cancellationToken);
+
+			if (poll.IsPublished && poll.StartsAt == DateOnly.FromDateTime(DateTime.UtcNow))
+				BackgroundJob.Enqueue(() => _notificationService.SendNewPollsNotification(poll.Id));
+
 			return Result.Success();
 		}
 	}
