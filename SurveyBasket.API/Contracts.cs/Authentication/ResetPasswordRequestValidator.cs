@@ -1,0 +1,24 @@
+﻿using FluentValidation;
+using SurveyBasket.API.Abstractions.Consts;
+
+namespace SurveyBasket.API.Contracts.cs.Authentication
+{
+	public class ResetPasswordRequestValidator : AbstractValidator<ResetPasswordRequest>
+	{
+        public ResetPasswordRequestValidator()
+        {
+            RuleFor(x => x.Email)
+				.NotEmpty()
+				.EmailAddress();
+
+            RuleFor(x => x.Code)
+                .NotEmpty();
+
+            RuleFor(x => x.NewPassword)
+                .NotEmpty()
+				.Matches(RegexPatterns.Password)
+				.WithMessage("Passwrod should be at least 8 digits and should contains lower case, nonalphanumeric and uppercase");
+
+		}
+    }
+}
