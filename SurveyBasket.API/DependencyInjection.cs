@@ -59,6 +59,7 @@ namespace SurveyBasket.API
 			services.AddScoped<IVoteService, VoteService>();
 			services.AddScoped<IResultService, ResultService>();
 			services.AddScoped<IEmailSender, EmailService>();
+			services.AddScoped<IUserService, UserService>();
 
 			services.AddExceptionHandler<GlobalExceptionHandler>();
 			services.AddProblemDetails();
