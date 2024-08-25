@@ -3,6 +3,8 @@ using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using SurveyBasket.API.Abstractions;
+using SurveyBasket.API.Abstractions.Consts;
+using SurveyBasket.API.Authentication.Filters;
 using SurveyBasket.API.Contracts.cs.Polls;
 using SurveyBasket.API.Services;
 
@@ -10,7 +12,6 @@ namespace SurveyBasket.API.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
-	//[Authorize]
 	public class PollsController : ControllerBase
 	{
 		private readonly IPollService _pollService;
@@ -21,18 +22,21 @@ namespace SurveyBasket.API.Controllers
 		}
 
 		[HttpGet("")]
+		[HasPermission(Permissions.GetPolls)]
 		public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
 		{
 			return Ok(await _pollService.GetAllAsync(cancellationToken));
 		}
 
 		[HttpGet("current")]
+		[Authorize(Roles = DefaultRoles.Member)]
 		public async Task<IActionResult> GetCurrent(CancellationToken cancellationToken)
 		{
 			return Ok(await _pollService.GetCurrentAsync(cancellationToken));
 		}
 
 		[HttpGet("{id}")]
+		[HasPermission(Permissions.GetPolls)]
 		public async Task<IActionResult> Get([FromRoute] int id, CancellationToken cancellationToken)
 		{
 			var result = await _pollService.GetAsync(id, cancellationToken);
@@ -41,6 +45,7 @@ namespace SurveyBasket.API.Controllers
 				: Problem(statusCode: StatusCodes.Status404NotFound, title: result.Error.Code, detail: result.Error.Description);
 		}
 		[HttpPost("")]
+		[HasPermission(Permissions.AddPolls)]
 		public async Task<IActionResult> Add([FromBody] PollRequest request, CancellationToken cancellationToken)
 		{
 
@@ -50,6 +55,7 @@ namespace SurveyBasket.API.Controllers
 				: Problem(statusCode: StatusCodes.Status400BadRequest, title: result.Error.Code, detail: result.Error.Description);
 		}
 		[HttpPut("{id}")]
+		[HasPermission(Permissions.UpdatePolls)]
 		public async Task<IActionResult> Update([FromRoute] int id, [FromBody] PollRequest request, CancellationToken cancellationToken)
 		{
 			var result = await _pollService.UpdateAsync(id, request, cancellationToken);
@@ -61,6 +67,7 @@ namespace SurveyBasket.API.Controllers
 			: Problem(statusCode: StatusCodes.Status404NotFound, title: result.Error.Code, detail: result.Error.Description);
 		}
 		[HttpDelete("{id}")]
+		[HasPermission(Permissions.DeletePolls)]
 		public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken cancellationToken)
 		{
 			var result = await _pollService.DeleteAsync(id, cancellationToken);
@@ -69,6 +76,7 @@ namespace SurveyBasket.API.Controllers
 				: Problem(statusCode: StatusCodes.Status404NotFound, title: result.Error.Code, detail: result.Error.Description);
 		}
 		[HttpPut("{id}/TogglePublish")]
+		[HasPermission(Permissions.UpdatePolls)]
 		public async Task<IActionResult> TogglePublishStatus([FromRoute] int id, CancellationToken cancellationToken)
 		{
 			var result = await _pollService.TogglePublishStatusAsync(id, cancellationToken);
