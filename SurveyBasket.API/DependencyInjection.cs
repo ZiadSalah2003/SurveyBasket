@@ -2,16 +2,19 @@
 using FluentValidation.AspNetCore;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SurveyBasket.API.Authentication;
+using SurveyBasket.API.Authentication.Filters;
 using SurveyBasket.API.Persistence;
 using SurveyBasket.API.Services;
 using SurveyBasket.API.Settings;
 using System.Reflection;
 using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace SurveyBasket.API
 {
@@ -88,9 +91,12 @@ namespace SurveyBasket.API
 
 		private static IServiceCollection AddAuthConfig(this IServiceCollection services, IConfiguration configuration)
 		{
-			services.AddIdentity<ApplicationUser, IdentityRole>()
+			services.AddIdentity<ApplicationUser, /*IdentityRole*/ApplicationRole>()
 				.AddEntityFrameworkStores<ApplicationDbContext>()
 				.AddDefaultTokenProviders(); // 20
+
+			services.AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>();
+			services.AddTransient<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
 
 			services.AddSingleton<IJwtProvider, JwtProvider>();
 			//services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
