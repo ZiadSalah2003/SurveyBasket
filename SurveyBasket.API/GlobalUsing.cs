@@ -9,3 +9,6 @@ global using Microsoft.AspNetCore.Identity;
 global using SurveyBasket.API.Authentication;
 global using SurveyBasket.API.Contracts.cs.Authentication;
 global using System.Security.Cryptography;
+global using SurveyBasket.API.Abstractions.Consts;
+global using SurveyBasket.API.Authentication.Filters;
+global using SurveyBasket.API.Services;
