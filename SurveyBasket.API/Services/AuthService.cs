@@ -33,6 +33,10 @@ namespace SurveyBasket.API.Services
 			var user = await _userManger.FindByEmailAsync(email);
 			if (user is null)
 				return Result.Failure<AuthResponse>(UserErrors.InvalidCredentails);
+
+			if(user.IsDisabled)
+				return Result.Failure<AuthResponse>(UserErrors.DisabledUser);
+
 			var userPassword = await _userManger.CheckPasswordAsync(user, password);
 			if (!userPassword)
 				return Result.Failure<AuthResponse>(UserErrors.InvalidCredentails);
@@ -63,6 +67,9 @@ namespace SurveyBasket.API.Services
 
 			if (user is null)
 				return Result.Failure<AuthResponse>(UserErrors.InvalidJwtToken);
+
+			if (user.IsDisabled)
+				return Result.Failure<AuthResponse>(UserErrors.DisabledUser);
 
 			var userRefreshToken = user.RefreshTokens.SingleOrDefault(x => x.Token == refreshToken && x.IsActive);
 
