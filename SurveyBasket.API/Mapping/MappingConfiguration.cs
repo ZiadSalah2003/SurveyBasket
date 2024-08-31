@@ -1,5 +1,6 @@
 ﻿using Mapster;
 using SurveyBasket.API.Contracts.cs.Questions;
+using SurveyBasket.API.Contracts.cs.Users;
 using SurveyBasket.API.Entities;
 
 namespace SurveyBasket.API.Mapping
@@ -13,6 +14,10 @@ namespace SurveyBasket.API.Mapping
 
 			config.NewConfig<RegisterRequest, ApplicationUser>()
 			    .Map(dest => dest.UserName, src => src.Email);
+
+			config.NewConfig<(ApplicationUser user, IList<string> roles), UserResponse>()
+				.Map(dest => dest, src => src.user)
+				.Map(dest => dest.Roles, src => src.roles);
 		}
 	}
 }

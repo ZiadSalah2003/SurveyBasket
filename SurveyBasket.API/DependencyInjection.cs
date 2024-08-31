@@ -130,6 +130,10 @@ namespace SurveyBasket.API
 				options.Password.RequiredLength = 8;
 				options.SignIn.RequireConfirmedEmail = true;
 				options.User.RequireUniqueEmail = true;
+
+				//options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5); //25
+				//options.Lockout.MaxFailedAccessAttempts = 5;  //25
+				//options.Lockout.AllowedForNewUsers = true; //25
 			});
 
 			return services;
