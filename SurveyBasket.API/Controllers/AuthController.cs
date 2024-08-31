@@ -32,7 +32,7 @@ namespace SurveyBasket.API.Controllers
 		[HttpPost("refresh")]
 		public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken)
 		{
-			var result = await _authService.GetTokenAsync(request.Token, request.RefreshToken, cancellationToken);
+			var result = await _authService.GetRefreshTokenAsync(request.Token, request.RefreshToken, cancellationToken);
 			return result.IsSuccess
 				? Ok()
 				: Problem(statusCode: StatusCodes.Status400BadRequest, title: result.Error.Code, detail: result.Error.Description);
