@@ -1,7 +1,8 @@
 ﻿using Mapster;
 using SurveyBasket.API.Contracts.cs.Answers;
+using SurveyBasket.API.Contracts.cs.Common;
 using SurveyBasket.API.Contracts.cs.Questions;
-using SurveyBasket.API.Entities;
+using System.Linq.Dynamic.Core;
 
 namespace SurveyBasket.API.Services
 {
@@ -13,14 +14,15 @@ namespace SurveyBasket.API.Services
 			_context = context;
 		}
 
-		public async Task<Result<IEnumerable<QuestionResponse>>> GetAllAsync(int pollId, CancellationToken cancellationToken = default)
+		public async Task<Result<PaginatedList<QuestionResponse>>> GetAllAsync(int pollId, RequestFilters filters, CancellationToken cancellationToken = default)
 		{
 			var pollIsExists = await _context.Polls.AnyAsync(p => p.Id == pollId, cancellationToken: cancellationToken);
 			if (!pollIsExists)
-				return Result.Failure<IEnumerable<QuestionResponse>>(PollErrors.PollNotFound);
+				return Result.Failure<PaginatedList<QuestionResponse>>(PollErrors.PollNotFound);
 
-			var questions = await _context.Questions
-				.Where(q => q.PollId == pollId)
+			var questions = /*await*/ _context.Questions
+				.Where(q => q.PollId == pollId && (string.IsNullOrEmpty(filters.SearchValue) || q.Content.Contains(filters.SearchValue)))
+				.OrderBy($"{filters.SortColumn} {filters.SortDirection}")
 				.Include(q => q.Answers)
 				//.Select(q=>new QuestionResponse(
 				//	q.Id,
@@ -28,9 +30,11 @@ namespace SurveyBasket.API.Services
 				//	q.Answers.Select(a=>new AnswerResponse(a.Id,a.Content))
 				//))
 				.ProjectToType<QuestionResponse>()
-				.AsNoTracking()
-				.ToListAsync(cancellationToken);
-			return Result.Success<IEnumerable<QuestionResponse>>(questions);
+				.AsNoTracking();
+				//.ToListAsync(cancellationToken);
+			var response = await PaginatedList<QuestionResponse>.CreateAsync(questions, filters.PageNumber, filters.PageSize, cancellationToken);
+
+			return Result.Success(response);
 		}
 		public async Task<Result<IEnumerable<QuestionResponse>>> GetAvaliableAsync(int pollId, string userId, CancellationToken cancellationToken = default)
 		{
