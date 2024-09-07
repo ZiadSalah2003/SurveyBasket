@@ -3,19 +3,16 @@ using FluentValidation.AspNetCore;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using SurveyBasket.API.Authentication;
-using SurveyBasket.API.Authentication.Filters;
+using SurveyBasket.API.Extensions;
 using SurveyBasket.API.Health;
-using SurveyBasket.API.Persistence;
-using SurveyBasket.API.Services;
 using SurveyBasket.API.Settings;
 using System.Reflection;
 using System.Text;
-using static System.Net.Mime.MediaTypeNames;
+using System.Threading.RateLimiting;
 
 namespace SurveyBasket.API
 {
@@ -76,6 +73,8 @@ namespace SurveyBasket.API
 						.AddDbContextCheck<ApplicationDbContext>(name: "database")
 						.AddHangfire(options => { options.MinimumAvailableServers = 1;})
 						.AddCheck<MailProviderHealthCheck>(name: "mail service");
+
+			services.AddRateLimitingConfig();
 
 			return services;
 		}
@@ -154,6 +153,71 @@ namespace SurveyBasket.API
 					.UseSqlServerStorage(configuration.GetConnectionString("HangfireConnection")));
 
 			services.AddHangfireServer();
+
+			return services;
+		}
+
+		private static IServiceCollection AddRateLimitingConfig(this IServiceCollection services)
+		{
+			services.AddRateLimiter(rateLimiterOptions => {
+				rateLimiterOptions.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+				rateLimiterOptions.AddPolicy(RateLimiters.IpLimiter, httpContent =>
+					RateLimitPartition.GetFixedWindowLimiter(
+						partitionKey: httpContent.Connection.RemoteIpAddress?.ToString(),
+						factory: _ => new FixedWindowRateLimiterOptions
+						{
+							PermitLimit = 2,
+							Window = TimeSpan.FromSeconds(20)
+						}
+					)
+				);
+
+				rateLimiterOptions.AddPolicy(RateLimiters.UserLimiter, httpContent =>
+					RateLimitPartition.GetFixedWindowLimiter(
+						partitionKey: httpContent.User.GetUserId(),
+						factory: _ => new FixedWindowRateLimiterOptions
+						{
+							PermitLimit = 2,
+							Window = TimeSpan.FromSeconds(20)
+						}
+					)
+				);
+
+				rateLimiterOptions.AddConcurrencyLimiter(RateLimiters.Concurrency, options =>
+				{
+					options.PermitLimit = 1000;
+					options.QueueLimit = 100;
+					options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+				});
+
+				rateLimiterOptions.AddTokenBucketLimiter(RateLimiters.Token, options =>
+				{
+					options.TokenLimit = 2;
+					options.QueueLimit = 1;
+					options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+					options.ReplenishmentPeriod = TimeSpan.FromSeconds(30);
+					options.TokensPerPeriod = 2;
+					options.AutoReplenishment = true;
+				});
+
+				rateLimiterOptions.AddFixedWindowLimiter(RateLimiters.Fixed, options =>
+				{
+					options.PermitLimit = 2;
+					options.Window = TimeSpan.FromSeconds(20);
+					options.QueueLimit = 1;
+					options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+				});
+
+				rateLimiterOptions.AddSlidingWindowLimiter(RateLimiters.Sliding, options =>
+				{
+					options.PermitLimit = 2;
+					options.Window = TimeSpan.FromSeconds(20);
+					options.SegmentsPerWindow = 2;
+					options.QueueLimit = 1;
+					options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+				});
+			});
 
 			return services;
 		}

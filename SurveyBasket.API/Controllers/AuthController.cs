@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 using SurveyBasket.API.Abstractions;
 using SurveyBasket.API.Authentication;
@@ -11,6 +12,7 @@ namespace SurveyBasket.API.Controllers
 {
 	[Route("[controller]")]
 	[ApiController]
+	[EnableRateLimiting("ipLimit")]
 	public class AuthController : ControllerBase
 	{
 		private readonly IAuthService _authService;
