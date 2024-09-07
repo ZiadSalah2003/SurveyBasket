@@ -1,14 +1,9 @@
-using FluentValidation;
-using FluentValidation.AspNetCore;
 using Hangfire;
-using Hangfire.Dashboard;
 using HangfireBasicAuthenticationFilter;
-using Microsoft.EntityFrameworkCore;
 using Serilog;
 using SurveyBasket.API;
-using SurveyBasket.API.Persistence;
-using SurveyBasket.API.Services;
-using System.Reflection;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using HealthChecks.UI.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,4 +52,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.UseExceptionHandler();
+
+app.MapHealthChecks("health", new HealthCheckOptions {
+	ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 app.Run();

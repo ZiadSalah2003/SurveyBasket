@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SurveyBasket.API.Authentication;
 using SurveyBasket.API.Authentication.Filters;
+using SurveyBasket.API.Health;
 using SurveyBasket.API.Persistence;
 using SurveyBasket.API.Services;
 using SurveyBasket.API.Settings;
@@ -70,6 +71,11 @@ namespace SurveyBasket.API
 
 			services.Configure<MailSettings>(configuration.GetSection(nameof(MailSettings)));
 			services.AddHttpContextAccessor();
+
+			services.AddHealthChecks()
+						.AddDbContextCheck<ApplicationDbContext>(name: "database")
+						.AddHangfire(options => { options.MinimumAvailableServers = 1;})
+						.AddCheck<MailProviderHealthCheck>(name: "mail service");
 
 			return services;
 		}
