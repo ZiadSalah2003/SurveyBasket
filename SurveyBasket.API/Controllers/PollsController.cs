@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Asp.Versioning;
+using FluentValidation;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -10,7 +11,9 @@ using SurveyBasket.API.Services;
 
 namespace SurveyBasket.API.Controllers
 {
-	[Route("api/[controller]")]
+	[ApiVersion(1, Deprecated = true)]
+	[ApiVersion(2)]
+	[Route("api/v{v:apiVersion}/[controller]")]
 	[ApiController]
 	public class PollsController : ControllerBase
 	{
@@ -28,11 +31,20 @@ namespace SurveyBasket.API.Controllers
 			return Ok(await _pollService.GetAllAsync(cancellationToken));
 		}
 
+		[MapToApiVersion(1)]
 		[HttpGet("current")]
 		[Authorize(Roles = DefaultRoles.Member)]
 		public async Task<IActionResult> GetCurrent(CancellationToken cancellationToken)
 		{
-			return Ok(await _pollService.GetCurrentAsync(cancellationToken));
+			return Ok(await _pollService.GetCurrentAsyncV1(cancellationToken));
+		}
+
+		[MapToApiVersion(2)]
+		[HttpGet("current")]
+		[Authorize(Roles = DefaultRoles.Member)]
+		public async Task<IActionResult> GetCurrentV2(CancellationToken cancellationToken)
+		{
+			return Ok(await _pollService.GetCurrentAsyncV2(cancellationToken));
 		}
 
 		[HttpGet("{id}")]
